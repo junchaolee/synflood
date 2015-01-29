@@ -257,12 +257,12 @@ int main(int argc,char *argv[])
 	signal(SIGTTIN,&sig_proc);
 	signal(SIGTTOU,&sig_proc);
 	
-	pthread_t thread[th_count];
 	int tnum =1; 
 	if( !(tnum = th_count = atoi(argv[6])) ){
 		printf( "thread count is 0 error.\n" );
 		return -1;
 	}
+	pthread_t thread[th_count];
 
 	while(tnum){
 		pthread_create(&thread[--tnum],NULL,flood,NULL);
